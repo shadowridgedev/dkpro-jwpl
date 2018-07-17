@@ -244,10 +244,13 @@ public class Page implements WikiConstants
 	/**
 	 * @return Returns the id.
 	 */
-	protected long __getId()
+	/*
+	 * Note well:
+	 * Access is limited to package-private here intentionally, as the database ID is considered framework-internal use.
+	 */
+	long __getId()
 	{
-		long id = hibernatePage.getId();
-		return id;
+		return hibernatePage.getId();
 	}
 
 	/**
@@ -255,13 +258,10 @@ public class Page implements WikiConstants
 	 */
 	public int getPageId()
 	{
-		int id = hibernatePage.getPageId();
-		return id;
+		return hibernatePage.getPageId();
 	}
 
 	/**
-	 * Returns a set of categories that this page belongs to.
-	 *
 	 * @return The a set of categories that this page belongs to.
 	 */
 	public Set<Category> getCategories()
@@ -471,9 +471,7 @@ public class Page implements WikiConstants
 	}
 
 	/**
-	 * Returns the set of strings that are redirects to this page.
-	 *
-	 * @return The set of redirect strings.
+	 * @return The set of strings that are redirects to this page.
 	 */
 	public Set<String> getRedirects()
 	{
@@ -595,7 +593,7 @@ public class Page implements WikiConstants
 	 *         type of the go() method of your visitor.
 	 * @throws WikiApiException Thrown if errors occurred.
 	 */
-	public Object parsePage(AstVisitor v) throws WikiApiException
+	private Object parsePage(AstVisitor v) throws WikiApiException
 	{
 		// Use the provided visitor to parse the page
 		return v.go(getCompiledPage().getPage());
@@ -607,7 +605,7 @@ public class Page implements WikiConstants
 	 * @return the parsed page
 	 * @throws WikiApiException Thrown if errors occurred.
 	 */
-	public EngProcessedPage getCompiledPage() throws WikiApiException
+	private EngProcessedPage getCompiledPage() throws WikiApiException
 	{
 		EngProcessedPage cp;
 		try{

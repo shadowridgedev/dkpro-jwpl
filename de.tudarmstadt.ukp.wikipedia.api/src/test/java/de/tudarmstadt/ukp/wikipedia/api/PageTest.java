@@ -25,6 +25,8 @@ import org.junit.*;
 
 import de.tudarmstadt.ukp.wikipedia.api.exception.WikiApiException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -91,8 +93,11 @@ public class PageTest extends BaseJWPLTest {
 	@Test
 	public void testGetText() {
 		String expectedMarkupText = "Wikipedia API ist die wichtigste [[Software]] überhaupt.\n" +
-				"[[JWPL|Wikipedia API]]. Nicht zu übertreffen. " +
-				"Unglaublich [[http://www.ukp.tu-darmstadt.de]] [[en:Wikipedia API]] [[fi:WikipediaAPI]]";
+				"[[JWPL|Wikipedia API]].\n\n" +
+				"*Nicht zu übertreffen.\n\n" +
+				"*Unglaublich\n\n" +
+				"*[[http://www.ukp.tu-darmstadt.de]]\n\n" +
+				"[[en:Wikipedia API]] [[fi:WikipediaAPI]]";
 		try {
 			String textWithMarkup = page.getText();
 			assertNotNull(textWithMarkup);
@@ -105,15 +110,18 @@ public class PageTest extends BaseJWPLTest {
 	}
 
 	@Test
-	@Ignore // FIXME see #161 and #160
 	public void testGetPlainText() {
-		String expectedPlainText = "Wikipedia API ist die wichtigste Software überhaupt. Wikipedia API.\n" +
-				"Nicht zu übertreffen.\nUnglaublich\nhttp://www.ukp.tu-darmstadt.de\nen:Wikipedia API fi:WikipediaAPI";
+		String expectedPlainText = "Wikipedia API ist die wichtigste Software überhaupt.\n" +
+				"Wikipedia API.\n" +
+				"Nicht zu übertreffen.\n" +
+				"Unglaublich\n" +
+				"http://www.ukp.tu-darmstadt.de\n" +
+				"en:Wikipedia API fi:WikipediaAPI";
 		try {
 			assertEquals(expectedPlainText, page.getPlainText());
-		} catch (Exception e) {
-			// TODO see #161 and #160
-			Assume.assumeNoException(e);
+		} catch (WikiApiException e) {
+			fail("A WikiApiException occurred while parsing the page for its text (plain via Sweble): "
+					+ e.getLocalizedMessage());
 		}
 	}
 
@@ -352,6 +360,39 @@ public class PageTest extends BaseJWPLTest {
 		} catch (WikiApiException e) {
 			fail("A WikiApiException occurred creating a page: " + e.getLocalizedMessage());
 		}
+	}
+
+	@Test
+	public void testPageTitleComparatorEquality() {
+		Page page1 = fetchPage(A_FAMOUS_PAGE);
+		assertNotNull(page1);
+		Page page2 =  fetchPage(A_FAMOUS_PAGE);
+		assertNotNull(page2);
+
+		List<Page> pages = new ArrayList<Page>();
+		pages.add(page1);
+		pages.add(page2);
+		pages.sort(new PageTitleComparator());
+
+		assertEquals(page1, pages.get(0));
+		assertEquals(page2, pages.get(1));
+	}
+
+	@Test
+	public void testCategoryTitleComparatorNewOrder() {
+		Page page1 = fetchPage(A_FAMOUS_PAGE);
+		assertNotNull(page1);
+		// this page should be re-ordered before "Wikipedia..."
+		Page page2 = fetchPage("Unconnected_page");
+		assertNotNull(page2);
+
+		List<Page> pages = new ArrayList<Page>();
+		pages.add(page1);
+		pages.add(page2);
+		pages.sort(new PageTitleComparator());
+
+		assertEquals(page2, pages.get(0));
+		assertEquals(page1, pages.get(1));
 	}
 
 	private Page fetchPage(final String title) {
